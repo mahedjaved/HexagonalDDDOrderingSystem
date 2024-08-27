@@ -14,7 +14,7 @@
     <modules>
         <module>order-application-service</module>
     </modules>
-
+    <!--should be the most independant with hardly any dependancies -->
     <properties>
     </properties>
 

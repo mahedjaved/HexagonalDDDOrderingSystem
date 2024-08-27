@@ -14,6 +14,7 @@
     <properties>
     </properties>
 
+    <!--    shouldnt have any dependancies apart from the core-logic -->
     <dependencies>
         <dependency>
             <groupId>com.food.ordering.system</groupId>

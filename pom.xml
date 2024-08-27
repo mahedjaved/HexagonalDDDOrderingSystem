@@ -33,6 +33,7 @@
     </properties>
 
     <!--    dependancies to child modules -->
+    <!--    helps unify the versions for dependancies in the child modules since we are setting ALL of them to project.version-->
     <dependencyManagement>
         <dependencies>
             <dependency>
