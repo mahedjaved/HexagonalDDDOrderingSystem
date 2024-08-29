@@ -1,4 +1,4 @@
-package com.food.ordering.system.domain.entity;
+package com.food.ordering.system.domain.entity.entity;
 
 // reason why we have "common" module is because alot the entities that domain objects have are similar, these can be defined independantly here
 // hence have this as an ABSTRACT class
