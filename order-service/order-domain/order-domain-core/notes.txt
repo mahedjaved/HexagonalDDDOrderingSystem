@@ -1,0 +1,57 @@
+This module contains the "core logic" and has the following :
+
+Entities :
+    -> Domain objects with a unique identity
+    -> They embody the "critical business rules"
+    -> They are mutable objects
+    -> Two entities are same if their identifiers are same even if all properties are DIFFERENT
+    -> They run some business logic and update the properties based on calculations
+    -> It should have state changing methods with well defined domains
+
+
+Aggregates :
+    -> Group of Entity objects that are "logically" related
+
+
+Aggregate Roots (ARs) :
+    -> Entry point Entity for an aggregate
+    -> All business operations must go through "root"
+    -> Responsible to enforce "business invariance"
+    -> All the state changing operations must go through the "root entity"
+    -> Helps keep the state of "aggregates" consistent since they can NOW be ONLY accessed through the "aggregate roots"
+    -> Aggregates referred via AR
+
+    -> Your most unique entity should become the AR, so for e.g.  the Order ID in an ordering system
+    ->
+
+Value Objects :
+    -> Are used to bring "context" to the value
+    -> For example : keeping "price" of an "order" you may think having BigDecimal field is enough
+    -> It is "immutable" --> once created it cannot be changed
+    -> And because of that they are "interchangeable", you can use two different value objects with the same "value" but used for different purposes
+
+
+Domain Events :
+    -> Used to "decouple" two different "domains" that are within seperate "bounded context"
+    -> They all lead to "Eventual Consistency" --> ALL READS RETURN "LATEST VALUE"
+    -> Messaging service is a great way of allowing communication between domain events
+    -> Beneficial to have a system with "Retry" operation
+    -> This is known as "Event Sourcing" where you keep the state of a system as an order log of events
+    -> You need an "Event log source"
+    -> Not to be confused with a 'sole single persistent model' of the system
+    -> also allows viewing of Logs for new subscribers
+    -> Create domain event listeners, and the other domain will publish
+
+
+Domain Services :
+    -> coordinates the busienss logic that spans "MULTIPLE AGGREGATES"
+    -> so if a business logic/function cannot fit within the ARs, you can instead use the Domain service to host the business logic
+    -> so think when a method does NOT fit LOGICALLY in any of the entities
+    -> domain services CAN communicate with other domain services but they cannot be communicated from the outside, this is where APPLICATION SERVICE comes in
+
+
+Application Services :
+    -> expose domain methods to the outside world
+    -> it should NOT have any business logic
+    -> good example of Application Services are `Domain Event Listeners`
+    ->
