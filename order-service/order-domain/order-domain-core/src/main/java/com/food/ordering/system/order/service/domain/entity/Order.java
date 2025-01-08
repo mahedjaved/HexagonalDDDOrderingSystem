@@ -2,10 +2,13 @@ package com.food.ordering.system.order.service.domain.entity;
 
 import com.food.ordering.system.domain.entity.entity.AggregateRoot;
 import com.food.ordering.system.domain.entity.valueobjects.*;
+import com.food.ordering.system.order.service.domain.event.OrderDomainException;
+import com.food.ordering.system.order.service.domain.valueobject.OrderItemId;
 import com.food.ordering.system.order.service.domain.valueobject.StreetAddress;
 import com.food.ordering.system.order.service.domain.valueobject.TrackingId;
 
 import java.util.List;
+import java.util.UUID;
 
 public class Order extends AggregateRoot<OrderId> {
     private final CustomerId customerId;
@@ -141,5 +144,59 @@ public class Order extends AggregateRoot<OrderId> {
         public Order build() {
             return new Order(this);
         }
+    }
+
+    //    --------------------------------------------------------------------------- //
+//    Business Logic Methods
+//    --------------------------------------------------------------------------- //
+    public void initializeOrder() {
+        // once order is initialised it must be given a new ID using the setter method inherited from the BaseEntity class
+        setId(new OrderId(UUID.randomUUID()));
+        trackingId = new TrackingId(UUID.randomUUID());
+        orderStatus = OrderStatus.PENDING;
+        initializeOrderItems();
+    }
+
+    private void initializeOrderItems() {
+        long itemId = 1;
+        for (OrderItem orderItem : items) {
+            orderItem.initializeOrderItem(super.getId(), new OrderItemId(itemId++));
+        }
+    }
+
+    public void validateOrder() {
+        validateInitialOrder();
+        validateTotalPrice();
+        validateItemsPrice();
+    }
+
+
+    private void validateInitialOrder() {
+        if (orderStatus != null || getId() != null) {
+            throw new OrderDomainException("Order is not in correct state for initialisation!");
+        }
+    }
+
+    private void validateTotalPrice() {
+        if (price == null || !price.isGreaterThanZero()) {
+            throw new OrderDomainException("Total price must be greater than zero!");
+        }
+    }
+
+    private void validateItemsPrice() {
+        Money orderItemsTotal = items.stream().map(orderItem -> {
+            validateItemPrice(orderItem);
+            return orderItem.getSubTotal();
+        }).reduce(Money.ZERO, Money::add);
+        if (!price.equals(orderItemsTotal)) {
+            throw new OrderDomainException("Total price : " + price.getAmount() + " does not add up to the Order Items total : " + orderItemsTotal);
+        }
+    }
+
+    private void validateItemPrice(OrderItem orderItem) {
+        if (!orderItem.isPriceValid()) {
+            throw new OrderDomainException("Order item price: " + orderItem.getPrice().getAmount() + " is not valid for product " + orderItem.getProduct().getId().getValue());
+        }
+
     }
 }
