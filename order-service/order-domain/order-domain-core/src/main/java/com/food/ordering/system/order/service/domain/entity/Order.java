@@ -199,4 +199,51 @@ public class Order extends AggregateRoot<OrderId> {
         }
 
     }
+
+    // ---------------------------------------  //
+    //  ------- STATE ALTERING METHODS -------  //
+    // ---------------------------------------  //
+    public void pay() {
+//        check if order is in PENDING state, because if it is NOT it CANNOT be transitioned to the state of being PAID
+        if (orderStatus != OrderStatus.PENDING) {
+            throw new OrderDomainException("Order is not in correct state for pay operation");
+        }
+        orderStatus = OrderStatus.PAID;
+    }
+
+    public void approve() {
+        if (orderStatus != OrderStatus.PAID) {
+            throw new OrderDomainException("Order is not in correct state for approved operation");
+        }
+        orderStatus = OrderStatus.APPROVED;
+    }
+
+    private void updateFailureMessages(List<String> failureMessages) {
+//        check if both the failure message collection for the object and the collection in the argument is NOT NULL
+        if (this.failureMessages != null && failureMessages != null) {
+//            filter out messages that are empty
+            this.failureMessages.addAll(failureMessages.stream().filter(message -> !message.isEmpty()).toList());
+        }
+//        store all the null messages as evidence history, for audit purposes
+        if (this.failureMessages == null) {
+            this.failureMessages = failureMessages;
+        }
+    }
+
+    public void initCancel(List<String> failureMessages) {
+//        for initCancel and cancel it is handy to have failure messages
+        if (orderStatus != OrderStatus.PAID) {
+            throw new OrderDomainException("Order is not in correct state for pending cancellation operation (i.e. CANCELLING)");
+        }
+        orderStatus = OrderStatus.CANCELLING;
+        updateFailureMessages(failureMessages);
+    }
+
+    public void cancel(List<String> failureMessages) {
+        if (!(orderStatus == OrderStatus.PENDING || orderStatus == OrderStatus.CANCELLING)) {
+            throw new OrderDomainException("Order is not in correct state for cancellation operation (i.e. CANCELLED)");
+        }
+        orderStatus = OrderStatus.CANCELLED;
+        updateFailureMessages(failureMessages);
+    }
 }
